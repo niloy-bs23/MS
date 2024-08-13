@@ -1,0 +1,49 @@
+volumes:
+  grafana-data:
+    driver: local
+  prometheus-data:
+    driver: local
+services:
+  grafana:
+    image: docker.io/grafana/grafana-oss
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    restart: unless-stopped
+  # prometheus:
+  #   image: docker.io/prom/prometheus
+  #   container_name: prometheus
+  #   ports:
+  #     - 9090:9090
+  #   command: "--config.file=/etc/prometheus/prometheus.yaml"
+  #   volumes:
+  #     - /projects/ms/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+  #     - prometheus-data:/prometheus
+  #   restart: unless-stopped
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - /projects/ms/loki/config.yml:/etc/loki/local-config.yaml
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - /var/log:/var/log
+      - /projects/ms/promtail/config.yml:/etc/promtail/promtail-config.yaml
+    command: -config.file=/etc/promtail/promtail-config.yaml
+
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - GF_SECURITY_ADMIN_PASSWORD=admin
+  #   volumes:
+  #     - grafana-storage:/var/lib/grafana
